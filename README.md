@@ -146,22 +146,6 @@ test/
 
 ---
 
-## 📋 Hackathon Requirements Checklist
-
-| Requirement | Status |
-|-------------|--------|
-| Accepts GitHub profile URL as input | ✅ |
-| Fetches public data from GitHub | ✅ |
-| Generates structured Portfolio Score | ✅ (5 dimensions + overall) |
-| At least 3 actionable improvement suggestions | ✅ (5 AI-generated, prioritized) |
-| Clean, user-friendly interface | ✅ (dark theme, animated, developer-native) |
-| Working prototype (not mockup) | ✅ |
-| Scoring system with clear metrics | ✅ |
-| Specific feedback (not generic) | ✅ (repo-level, AI-powered) |
-| Demo video | ✅ (linked above) |
-
----
-
 ## 🎨 Design Philosophy
 
 - **Dark-first** — built for developers who live in dark mode
