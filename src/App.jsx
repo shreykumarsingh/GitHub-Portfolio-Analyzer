@@ -139,7 +139,7 @@ function computeScores(data) {
   // ════════════════════════════════════════════════
   let profileScore = 0;
   const profileChecks = {
-    hasAvatar: user.avatar_url && !user.avatar_url.includes("identicon"),
+    hasAvatar: typeof user?.avatar_url === "string" && !user.avatar_url.includes("identicon"),
     hasBio: !!user.bio && user.bio.length > 10,
     hasLocation: !!user.location,
     hasWebsite: !!user.blog,
@@ -168,7 +168,7 @@ function computeScores(data) {
   //    Recruiter spends 6 seconds → README must communicate fast
   // ════════════════════════════════════════════════
   const readmeAnalysis = repoDetails.map((repo) => {
-    if (!repo.readmeContent) return { repo: repo.name, score: 0, issues: ["No README file"] };
+    if (!repo.readmeContent) return { repo: repo.name, score: 0, issues: ["No README file"], strengths: [] };
 
     const content = repo.readmeContent;
     const lower = content.toLowerCase();
@@ -377,11 +377,11 @@ function computeScores(data) {
 
     // Bonus for diverse repo types
     const hasWebProject = repoDetails.some((r) => {
-      const langs = Object.keys(r.languages).map((l) => l.toLowerCase());
+      const langs = Object.keys(r.languages || {}).map((l) => l.toLowerCase());
       return langs.includes("javascript") || langs.includes("typescript") || langs.includes("html");
     });
     const hasBackendProject = repoDetails.some((r) => {
-      const langs = Object.keys(r.languages).map((l) => l.toLowerCase());
+      const langs = Object.keys(r.languages || {}).map((l) => l.toLowerCase());
       return langs.includes("python") || langs.includes("java") || langs.includes("go") || langs.includes("c#");
     });
     if (hasWebProject && hasBackendProject) repoOrgScore += 5;
@@ -459,9 +459,9 @@ function computeScores(data) {
 
   // README red flags (THE biggest issue)
   if (noReadmeRatio > 0.5) redFlags.push(`${Math.round(noReadmeRatio * 100)}% of top repos have no README — this is the #1 recruiter turn-off`);
-  const noLiveDemo = readmeAnalysis.filter((r) => r.issues.includes("No live demo/deployment link")).length;
+  const noLiveDemo = readmeAnalysis.filter((r) => (r.issues || []).includes("No live demo/deployment link")).length;
   if (noLiveDemo >= repoDetails.length * 0.7) redFlags.push("Almost no projects have live demo links — recruiters can't see your work in action");
-  const noScreenshots = readmeAnalysis.filter((r) => r.issues.includes("No screenshots or demo visuals")).length;
+  const noScreenshots = readmeAnalysis.filter((r) => (r.issues || []).includes("No screenshots or demo visuals")).length;
   if (noScreenshots >= repoDetails.length * 0.7) redFlags.push("No screenshots/GIFs in READMEs — visual proof matters");
 
   // Activity red flags
@@ -486,7 +486,7 @@ function computeScores(data) {
   if (maxStreak >= 5) strengths.push(`${maxStreak}-day contribution streak — shows consistency`);
   if (originalRepos.length >= 8) strengths.push(`${originalRepos.length} original projects — substantial portfolio`);
   if (largeProjects >= 2) strengths.push("Has non-trivial, complex projects");
-  if (readmeAnalysis.some((r) => r.strengths.includes("Has live demo link"))) strengths.push("Some projects have live demos — great for recruiter evaluation");
+  if (readmeAnalysis.some((r) => (r.strengths || []).includes("Has live demo link"))) strengths.push("Some projects have live demos — great for recruiter evaluation");
 
   return {
     overall,
