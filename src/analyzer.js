@@ -24,8 +24,8 @@ export function validateAI(value) {
   return { ...value, source: "provider" };
 }
 
-export async function fetchProfile(username) {
-  const token = import.meta.env?.VITE_GITHUB_TOKEN;
+export async function fetchProfile(username, config = import.meta.env ?? {}) {
+  const token = config.VITE_GITHUB_TOKEN;
   const headers = {
     Accept: "application/vnd.github.v3+json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -282,8 +282,9 @@ export function computeScores(data) {
   //    Key: CONSISTENCY > volume. 3 commits/week for 6 months > 100 commits in 1 day
   // ════════════════════════════════════════════════
   const pushEvents = events.filter((e) => e.type === "PushEvent");
-  const allEventDates = events.map((e) => new Date(e.created_at));
-  const pushDates = pushEvents.map((e) => new Date(e.created_at));
+  const validDate = (date) => Number.isFinite(date.getTime()) && date <= now;
+  const allEventDates = events.map((e) => new Date(e.created_at)).filter(validDate);
+  const pushDates = pushEvents.map((e) => new Date(e.created_at)).filter(validDate);
 
   // Unique active days in last 90 days
   const last90 = pushDates.filter((d) => now - d < 90 * 24 * 60 * 60 * 1000);
@@ -304,13 +305,13 @@ export function computeScores(data) {
     if (i === 0) { currentStreak = 1; }
     else {
       const diff = (new Date(sortedDates[i]) - new Date(sortedDates[i - 1])) / (24 * 60 * 60 * 1000);
-      currentStreak = diff === 1 ? currentStreak + 1 : 1; // allow 1 day gap
+      currentStreak = diff === 1 ? currentStreak + 1 : 1; // consecutive UTC calendar days
     }
     maxStreak = Math.max(maxStreak, currentStreak);
   }
 
   // Recent activity (last 30 days)
-  const last30Events = events.filter((e) => now - new Date(e.created_at) < 30 * 24 * 60 * 60 * 1000).length;
+  const last30Events = allEventDates.filter((date) => now - date < 30 * 24 * 60 * 60 * 1000).length;
 
   // Is profile active at all in last 6 months?
   const lastActivity = allEventDates.length > 0 ? new Date(Math.max(...allEventDates)) : null;
@@ -517,7 +518,7 @@ export function computeScores(data) {
 
 // ── AI Analysis ──
 
-export async function getAI(data, scores) {
+export async function getAI(data, scores, config = import.meta.env ?? {}) {
   const { user, repoDetails } = data;
   const repoSummaries = repoDetails.slice(0, 6).map((r) =>
     `- ${r.name}: ${r.description || "no desc"} | ⭐${r.stargazers_count} | Lang: ${Object.keys(r.languages).join(",") || "none"} | README: ${r.readmeLength} chars | Topics: ${(r.topics || []).join(",") || "none"} | Commits: ${(r.recentCommits || []).length} | Homepage: ${r.homepage || "none"}`
@@ -563,18 +564,18 @@ Respond ONLY in this JSON format, no markdown no backticks:
   "weeklyPlan": "A 2-week plan to improve this profile score by 15-20 points"
 }`;
 
-  const geminiKey = import.meta.env?.VITE_GEMINI_API_KEY;
-  const groqKey = import.meta.env?.VITE_GROQ_API_KEY;
-  const anthropicKey = import.meta.env?.VITE_ANTHROPIC_API_KEY;
+  const geminiKey = config.VITE_GEMINI_API_KEY;
+  const groqKey = config.VITE_GROQ_API_KEY;
+  const anthropicKey = config.VITE_ANTHROPIC_API_KEY;
 
-  // 1. Free Option 1: Google Gemini Flash (Generous free tier via Google AI Studio)
+  // Optional Gemini integration.
   if (geminiKey) {
     try {
       const res = await fetchWithTimeout(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.VITE_GEMINI_MODEL || "gemini-2.5-flash")}:generateContent`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { responseMimeType: "application/json" },
@@ -594,7 +595,7 @@ Respond ONLY in this JSON format, no markdown no backticks:
     }
   }
 
-  // 2. Free Option 2: Groq Cloud (Free LLaMA 3.3 70B via console.groq.com)
+  // Optional Groq integration.
   if (groqKey) {
     try {
       const res = await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
@@ -604,7 +605,7 @@ Respond ONLY in this JSON format, no markdown no backticks:
           Authorization: `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: config.VITE_GROQ_MODEL || "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
         }),
@@ -638,7 +639,7 @@ Respond ONLY in this JSON format, no markdown no backticks:
             "anthropic-version": "2023-06-01",
             "anthropic-dangerous-direct-browser-access": "true",
           },
-          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] }),
+          body: JSON.stringify({ model: config.VITE_ANTHROPIC_MODEL || "claude-sonnet-4-20250514", max_tokens: 3000, messages: [{ role: "user", content: prompt }] }),
         });
         if (!res.ok) continue;
         const result = await res.json();

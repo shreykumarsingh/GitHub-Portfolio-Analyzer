@@ -4,7 +4,7 @@
 
 ![GitHub Portfolio Analyzer](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
-![Claude AI](https://img.shields.io/badge/Claude_AI-Powered-D4A574?logo=anthropic&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-Powered-4285F4?logo=google&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
@@ -46,7 +46,7 @@ Paste any GitHub username or profile URL → get an instant recruiter-grade anal
 | Frontend | React 18, Vite |
 | Styling | Inline CSS (zero dependencies, dark theme) |
 | APIs | GitHub REST API (public, no auth) |
-| AI Engine | Anthropic Claude API (recruiter analysis) |
+| AI Engine | Google Gemini API (recruiter analysis) |
 | Fonts | DM Sans + JetBrains Mono (Google Fonts) |
 
 **Zero external UI libraries.** No Tailwind, no component library — everything is hand-crafted for a clean, developer-native experience.
@@ -114,7 +114,7 @@ Each dimension scores 0–100. The **overall score** is the weighted average.
 
 ## 🤖 AI Analysis
 
-The tool sends a structured profile summary to **Claude AI** (Anthropic), which responds with:
+The tool sends a structured profile summary to **Google Gemini API**, which responds with:
 
 - A one-line **recruiter verdict** — specific to your profile
 - **3 strengths** recruiters would notice
