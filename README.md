@@ -7,12 +7,6 @@
 ![Claude AI](https://img.shields.io/badge/Claude_AI-Powered-D4A574?logo=anthropic&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
----
-
-## 🎬 Demo
-
-<!-- Add your live demo or screen recording link below -->
-<!-- [Live Demo](https://your-deployment-url.app) -->
 
 ---
 
