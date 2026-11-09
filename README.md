@@ -7,6 +7,11 @@
 ![Claude AI](https://img.shields.io/badge/Claude_AI-Powered-D4A574?logo=anthropic&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+---
+
+## 🎬 Live Demo
+
+👉 **[Launch GitHub Portfolio Analyzer](https://git-hub-portfolio-analyzer-olive.vercel.app/)**
 
 ---
 
