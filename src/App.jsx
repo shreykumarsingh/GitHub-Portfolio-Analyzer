@@ -59,11 +59,17 @@ async function fetchProfile(username) {
   };
 
   const userRes = await fetch(`${API}/users/${username}`, { headers });
-  if (!userRes.ok) throw new Error("User not found. Check the username.");
+  if (!userRes.ok) {
+    if (userRes.status === 404) throw new Error("GitHub user not found. Please check the username.");
+    if (userRes.status === 403) throw new Error("GitHub API rate limit exceeded. Please wait a bit or configure a GitHub Token.");
+    throw new Error(`GitHub API error: ${userRes.statusText}`);
+  }
   const user = await userRes.json();
 
   const reposRes = await fetch(`${API}/users/${username}/repos?per_page=100&sort=updated&type=owner`, { headers });
-  const allRepos = await reposRes.json();
+  if (!reposRes.ok) throw new Error(`Could not fetch repositories (${reposRes.statusText})`);
+  const reposData = await reposRes.json();
+  const allRepos = Array.isArray(reposData) ? reposData : [];
 
   // Separate forked and original
   const originalRepos = allRepos.filter((r) => !r.fork);
@@ -115,7 +121,8 @@ async function fetchProfile(username) {
 
   // Events for activity analysis
   const eventsRes = await fetch(`${API}/users/${username}/events/public?per_page=100`, { headers });
-  const events = eventsRes.ok ? await eventsRes.json() : [];
+  const eventsData = eventsRes.ok ? await eventsRes.json() : [];
+  const events = Array.isArray(eventsData) ? eventsData : [];
 
   return { user, allRepos, originalRepos, forkedRepos, repoDetails, events };
 }
@@ -396,7 +403,7 @@ function computeScores(data) {
   // ════════════════════════════════════════════════
   const allLangs = {};
   repoDetails.forEach((r) => {
-    Object.entries(r.languages).forEach(([lang, bytes]) => {
+    Object.entries(r.languages || {}).forEach(([lang, bytes]) => {
       allLangs[lang] = (allLangs[lang] || 0) + bytes;
     });
   });
@@ -421,7 +428,7 @@ function computeScores(data) {
   techScore += Math.min(mediumProjects * 3, 10);
 
   // Multi-language repos (full-stack signal)
-  const fullStackRepos = repoDetails.filter((r) => Object.keys(r.languages).length >= 3).length;
+  const fullStackRepos = repoDetails.filter((r) => Object.keys(r.languages || {}).length >= 3).length;
   techScore += Math.min(fullStackRepos * 5, 15);
 
   // Issues & PRs (collaboration signals)
@@ -699,7 +706,7 @@ function generateFallbackAI(data, scores) {
     if (recs.length < 5) recs.push({ title: "Engage with open source", detail: "Find a project you use and submit a PR — even fixing a typo in docs counts. It shows collaboration skills.", priority: "low", impact: "Demonstrates you can work in real codebases with others" });
   }
 
-  const topRepos = repoDetails.sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 3).map((r) => r.name);
+  const topRepos = [...repoDetails].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 3).map((r) => r.name);
   const emptyRepos = repoDetails.filter((r) => (r.recentCommits || []).length <= 1 && r.stargazers_count === 0).slice(0, 2).map((r) => r.name);
 
   return {
