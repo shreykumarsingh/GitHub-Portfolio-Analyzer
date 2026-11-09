@@ -30,14 +30,7 @@ Paste any GitHub username or profile URL → get an instant recruiter-grade anal
 - 🛤️ **Prioritized Action Plan** — 5 steps with repo-level recommendations
 - 👤 **Recruiter Impression** — the honest first-impression summary
 
----
 
-## 📸 Screenshots
-
-<!-- Add your screenshots here -->
-<!-- ![Home](./screenshots/home.png) -->
-<!-- ![Results](./screenshots/results.png) -->
-<!-- ![AI Analysis](./screenshots/ai-analysis.png) -->
 
 ---
 
