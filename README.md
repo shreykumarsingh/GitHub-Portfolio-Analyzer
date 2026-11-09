@@ -9,12 +9,6 @@
 
 ---
 
-## 🎬 Live Demo
-
-👉 **[Launch GitHub Portfolio Analyzer](https://git-hub-portfolio-analyzer-olive.vercel.app/)**
-
----
-
 ## 🧠 What It Does
 
 Paste any GitHub username or profile URL → get an instant recruiter-grade analysis in under 30 seconds.
