@@ -596,7 +596,10 @@ Respond ONLY in this JSON format, no markdown no backticks:
       if (res.ok) {
         const result = await res.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return JSON.parse(text);
+        if (text) {
+          const cleaned = text.replace(/```(?:json)?/gi, "").trim();
+          return JSON.parse(cleaned);
+        }
       }
     } catch (err) {
       console.warn("Gemini API call failed:", err.message);
@@ -621,7 +624,10 @@ Respond ONLY in this JSON format, no markdown no backticks:
       if (res.ok) {
         const result = await res.json();
         const text = result.choices?.[0]?.message?.content;
-        if (text) return JSON.parse(text);
+        if (text) {
+          const cleaned = text.replace(/```(?:json)?/gi, "").trim();
+          return JSON.parse(cleaned);
+        }
       }
     } catch (err) {
       console.warn("Groq API call failed:", err.message);
